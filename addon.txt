@@ -1,0 +1,9 @@
+"AddonInfo"
+{
+        "name"              "aScoreboard"
+        "version"           "0.01"
+        "author_name"       "AndrewPH"
+        "author_email"      "andrewphorn@gmail.com"
+        "info"              "A simple scoreboard addon that will (attempt) to check which gamemode you use, and rearrange itself accordingly."
+        "override"          "0"
+}
