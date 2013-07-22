@@ -125,7 +125,7 @@ Scoreboard_data.init = function()
 				for teamid,thing in pairs(self.vgui.Columns) do
 					thing:Refill()
 				end
-				self.Refill = CurTime() + 4
+				self.Refill = CurTime() + 1
 			end
 		end
 	end
