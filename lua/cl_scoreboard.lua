@@ -9,6 +9,12 @@ local function clamp(inv, min, max)
 	end
 end
 
+local function table_invert(t)
+  local u = { }
+  for k, v in pairs(t) do u[v] = k end
+  return u
+end
+
 scb = {}
 scb.initd = 0
 
@@ -120,74 +126,99 @@ scb.init = function()
 	Scoreboard.Paint = function(self)
 		draw.RoundedBox(scb.roundness,-scb.padding,0,self:GetWide(),self:GetTall(),scb.color)
 	end
+	Scoreboard.players = {}
 	Scoreboard.Refill = function(self)
-		local players = {}
 		for _,ply in pairs(player.GetAll()) do
-			if not players[ply:Team()] then players[ply:Team()] = {} end
-			table.insert(players[ply:Team()],ply)
+			if not self.players[ply:Team()] then self.players[ply:Team()] = {} end
+			if not self.players[ply:Team()][ply] then
+				table.insert(self.players[ply:Team()],ply)
+			end
+			for team,plly in pairs(self.players) do
+				del = 1
+				if ply == plly and IsValid(ply) and ply:IsPlayer() then
+					del = 0
+				end
+				if del == 1 then
+					table.remove(self.players,self.players[table_invert(self.players)[ply]])
+				end
+			end
+
 		end
 
-		self.sscoreboards = {}
+		self.scoreboards = {}
 		local lt = nil
 		local col = 1 -- not number of columns, usually. 1 and 2 are numbers of columns, but if it's 3 then it does two and the last column is extra large.
-		if #players == 1 then
+		if #self.players == 1 or ScrW() < 1024 then
 			col = 1
-		elseif math.fmod(#players, 2) == 0 then
+		elseif math.fmod(#self.players, 2) == 0 then
 			col = 1
-		elseif math.fmod(#players, 2) ~= 0 then
+		elseif math.fmod(#self.players, 2) ~= 0 then
 			col = 3
 		end
 		local x = 1
-		for team,plys in pairs(players) do
-			print(team)
-			self.sscoreboards[x] = vgui.Create("DPanelList",Scoreboard)
+		for team,plys in pairs(self.players) do
+			self.scoreboards[x] = vgui.Create("DPanelList",Scoreboard)
 			if col == 1 then
-				self.sscoreboards[x]:SetSize((Scoreboard:GetWide())-(scb.padding*2),Scoreboard:GetTall()-(scb.padding*2))
-				self.sscoreboards[x]:SetPos(scb.padding,scb.padding)
+				self.scoreboards[x]:SetSize((Scoreboard:GetWide())-(scb.padding*2),Scoreboard:GetTall()-(scb.padding*2))
+				self.scoreboards[x]:SetPos(scb.padding,scb.padding)
 			elseif col == 2 or col == 3 then
-				if x == #players and col == 3 then
-					self.sscoreboards[x]:SetSize((Scoreboard:GetWide())-(scb.padding*2),Scoreboard:GetTall()-(scb.padding*2))
+				if x == #self.players and col == 3 then
+					self.scoreboards[x]:SetSize((Scoreboard:GetWide())-(scb.padding*2),Scoreboard:GetTall()-(scb.padding*2))
 				else
-					self.sscoreboards[x]:SetSize((Scoreboard:GetWide()/2)-(scb.padding*2),Scoreboard:GetTall()-(scb.padding*2))
+					self.scoreboards[x]:SetSize((Scoreboard:GetWide()/2)-(scb.padding*2),Scoreboard:GetTall()-(scb.padding*2))
 				end
 			end
-			self.sscoreboards[x]:EnableHorizontal(false)
-			self.sscoreboards[x]:EnableVerticalScrollbar(true)
-			self.sscoreboards[x]:SetSpacing(scb.padding/5)
-			self.sscoreboards[x].players = {}
+			self.scoreboards[x]:EnableHorizontal(false)
+			self.scoreboards[x]:EnableVerticalScrollbar(true)
+			self.scoreboards[x]:SetSpacing(scb.padding/5)
+			self.scoreboards[x].players = {}
+			local skip = false
 			for _,ply in ipairs(plys) do
-				local pcolor = Color(110,250,150,150)
-				local p = vgui.Create("DPanel")
-				local ID = tostring(ply:SteamID())
-				local av = vgui.Create("AvatarImage", p)
-				local mB = vgui.Create("DImageButton",p)
-				local avp = 3
-				p:SetPos(0,0)
-				p:SetSize(self.sscoreboards[x]:GetWide() - (scb.padding*2),32)
-
-				av:SetPos(avp,avp)
-				av:SetSize(32-(avp*2),32-(avp*2))
-				av:SetPlayer(ply,32)
-
-				mB:SetSize(32,32)
-				mB:Dock(RIGHT)
-				mB:SetPos(avp,avp)
-				p.Paint = function(self)
-					draw.RoundedBox(4,0,0,self:GetWide(),self:GetTall(),pcolor)
-					surface.SetFont("ScoreboardPlayerFont")
-					surface.SetTextPos( 32+ (avp),self:GetTall()/2-(22/2) )
-					surface.SetTextColor(Color(25,25,25,250))
-					surface.DrawText(ply:GetName())	
-				end
-				mB.Think = function(self)
-					if ply:IsMuted() then
-						mB:SetImage("icon32/muted.png")
-					else 
-						mB:SetImage("icon32/unmuted.png")
+				for _,p in ipairs(self.scoreboards[x].players) do
+					print(tostring(ply:SteamID()))
+					if p.sid == ply:SteamID() then
+						skip = true
 					end
-					mB.DoClick = function (self) ply:SetMuted(!ply:IsMuted()) end
 				end
-			self.sscoreboards[x]:AddItem(p)
+				if skip == false then
+					if IsValid(ply) and ply:IsPlayer() then
+						local pcolor = Color(110,250,150,150)
+						local p = vgui.Create("DPanel")
+						local av = vgui.Create("AvatarImage", p)
+						local mB = vgui.Create("DImageButton",p)
+						local avp = 3
+
+						p:SetPos(0,0)
+						p:SetSize(self.scoreboards[x]:GetWide() - (scb.padding*2),32)
+						p.sid = ply:SteamID()
+
+						av:SetPos(avp,avp)
+						av:SetSize(32-(avp*2),32-(avp*2))
+						av:SetPlayer(ply,32)
+						p:SetToolTip(ply:Name().." ("..ply:SteamID()..")")
+
+						mB:SetSize(32,32)
+						mB:Dock(RIGHT)
+						mB:SetPos(avp,avp)
+						p.Paint = function(self)
+							draw.RoundedBox(4,0,0,self:GetWide(),self:GetTall(),pcolor)
+							surface.SetFont("ScoreboardPlayerFont")
+							surface.SetTextPos( 32+ (avp),self:GetTall()/2-(22/2) )
+							surface.SetTextColor(Color(25,25,25,250))
+							surface.DrawText(ply:GetName())	
+						end
+						mB.Think = function(self)
+							if ply:IsMuted() then
+								mB:SetImage("icon32/muted.png")
+							else 
+								mB:SetImage("icon32/unmuted.png")
+							end
+							mB.DoClick = function (self) ply:SetMuted(!ply:IsMuted()) end
+						end
+					table.insert(self.scoreboards[x].players,p.sid)
+					self.scoreboards[x]:AddItem(p)
+					end
+				end
 			end	
 		end
 	end
