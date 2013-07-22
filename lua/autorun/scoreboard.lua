@@ -1,5 +1,5 @@
 if SERVER then
-	AddCSLuaFile('cl_scoreboard.lua')
+	AddCSLuaFile('cl_scoreboard_rc.lua')
 else
-	include('cl_scoreboard.lua')
+	include('cl_scoreboard_rc.lua')
 end

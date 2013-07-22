@@ -85,9 +85,6 @@ scb.init = function()
 	TitleFrame = vgui.Create("DPanel",ScoreboardFrame)
 	TitleFrame:SetSize(ScoreboardFrame:GetWide()-(scb.padding*2),scb.title.height)
 	TitleFrame:SetPos(scb.padding,0)
-	TitleFrame.Paint = function(self)
-		draw.RoundedBox(scb.roundness,0,0,self:GetWide(),self:GetTall(),Color(0,0,0,0))
-	end
 
 	-- Title (DLabel)
 	Title = vgui.Create("DLabel",TitleFrame)
