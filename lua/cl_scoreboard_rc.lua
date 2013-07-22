@@ -79,8 +79,8 @@ Scoreboard_data.init = function()
 
 	-- self.vgui.TitleFrame (DPanel) ~ Contains playercount & server name.
 	self.vgui.TitleFrame = vgui.Create("DPanel",self.vgui.ScoreboardFrame)
-	self.vgui.TitleFrame:SetSize(self.vgui.ScoreboardFrame:GetWide() - (self.padding*2), self.title.height)
-	self.vgui.TitleFrame:SetPos(self.padding,0)
+	self.vgui.TitleFrame:SetSize(self.vgui.ScoreboardFrame:GetWide(), self.title.height)
+	self.vgui.TitleFrame:SetPos(0,0)
 	self.vgui.TitleFrame.Paint = self.vgui.TransparentPaint
 
 	-- self.vgui.Title (DLabel) ~ Contains server name.
